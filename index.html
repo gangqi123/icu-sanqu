@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>厦门大学附属第一医院ICU三区信息屏 三区4.1.5</title>
+<title>厦门大学附属第一医院ICU三区信息屏 三区4.1.7</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -390,6 +390,10 @@ var PINYIN_INIT_GROUPS={  'a':'伌侒俺傲僾儑凒凹卬厫叆哀哎唉唵啀�
         <span class="nav-item-icon">👩‍⚕️</span>
         <span class="nav-item-text">护士</span>
       </button>
+      <button class="nav-item" onclick="showPage('medical-group-search')">
+        <span class="nav-item-icon">🔍</span>
+        <span class="nav-item-text">查询医疗组</span>
+      </button>
       <button class="nav-item" onclick="showPage('admin')">
         <span class="nav-item-icon">⚙️</span>
         <span class="nav-item-text">管理</span>
@@ -465,6 +469,23 @@ var PINYIN_INIT_GROUPS={  'a':'伌侒俺傲僾儑凒凹卬厫叆哀哎唉唵啀�
     </div>
   </div>
 
+  <!-- 查询医疗组页面 -->
+  <div class="page" id="page-medical-group-search">
+    <div class="header">
+      <button class="back-btn" onclick="showPage('home')">←</button>
+      <div class="header-title">查询医疗组</div>
+    </div>
+    <div class="form-page" style="max-width:800px">
+      <div class="form-section">
+        <div class="form-section-title">🔍 搜索医生姓名</div>
+        <div class="form-hint">输入医生姓名或拼音首字母，查看所属医疗组</div>
+        <input type="text" class="bind-input" id="medGroupSearchInput" placeholder="搜索医生姓名..." oninput="searchMedicalGroup()">
+        <div class="staff-search-list" id="medGroupSearchResult" style="margin-top:10px"></div>
+      </div>
+      <div id="medGroupDetail"></div>
+    </div>
+  </div>
+
   <!-- 管理页面 -->
   <div class="page" id="page-admin">
     <div class="header">
@@ -489,6 +510,12 @@ var PINYIN_INIT_GROUPS={  'a':'伌侒俺傲僾儑凒凹卬厫叆哀哎唉唵啀�
           <div class="form-section" id="batchScheduleEntry">
             <div class="form-section-title">📅 批量排班</div>
             <button class="btn btn-primary btn-block" id="batchScheduleBtn" onclick="gotoBatchSchedule()">护士批量日排班</button>
+            <button class="btn btn-primary btn-block" id="medicalGroupBtn" style="display:none;margin-top:8px" onclick="showPage('medical-groups')">👥 医疗组设置</button>
+            <div id="nurseBatchButtons" style="display:none;flex-direction:column;gap:8px;margin-top:8px">
+              <button class="btn btn-primary btn-block" onclick="showPage('nurse-batch-night')">护士批量上夜排班</button>
+              <button class="btn btn-primary btn-block" onclick="showPage('nurse-batch-night-late')">护士批量下夜排班</button>
+              <button class="btn btn-block" id="pendingScheduleBtn" style="background:#e67e22;color:white" onclick="viewPendingSchedule()">已排班未生效</button>
+            </div>
           </div>
           <div class="form-section">
             <div class="form-section-title" id="addStaffTitle">➕ 添加医生</div>
@@ -565,7 +592,7 @@ var PINYIN_INIT_GROUPS={  'a':'伌侒俺傲僾儑凒凹卬厫叆哀哎唉唵啀�
       <div class="form-section">
         <div class="form-section-title">📅 排班日期</div>
         <input type="date" id="batchScheduleDate" class="bind-input" onchange="batchScheduleDraft.date=this.value">
-        <p class="form-hint">默认为次日白班排班。当日排班保存后立即生效；次日排班若在16:00前保存，则在16:00后自动更新；16:00后保存则立即生效。</p>
+        <p class="form-hint">选择当日排班保存后立即生效；选择次日排班会保存在后台，在次日08:00后自动更新到主界面。</p>
       </div>
       <div class="form-section">
         <div class="form-section-title">🛏️ 床位排班（点击选择护士）</div>
@@ -600,6 +627,102 @@ var PINYIN_INIT_GROUPS={  'a':'伌侒俺傲僾儑凒凹卬厫叆哀哎唉唵啀�
     </div>
   </div>
 
+  <!-- 4.1.6: 护士批量上夜排班页面 -->
+  <div class="page" id="page-nurse-batch-night">
+    <div class="header">
+      <button class="back-btn" onclick="showPage('admin')">←</button>
+      <div class="header-logo"><img src="data:image/webp;base64,UklGRrxLAABXRUJQVlA4WAoAAAAQAAAAKwEAKwEAQUxQSDYKAAABDl/Y/xmS5P9fZnb1YjyztnfP9m0M3rYHZ28eunvetq3BtbZt2zbHttbere6quq6KrCxlRjwPn6+MjMiIgAXZatuKYiyQUF61nSJL95NZ5VAGKl4Y53EHTZ313T+feNEtjy7fsP2VN98ZqUvxzpuv+Nw+Wl7k/vzdWdMOGtf6eCt+QIQG5ch525LvqM/9aOHVj61/tdE1O/FcOFQe2ZIuqgxYE1LovMQ62GP60On3b641Wpgc9Z6sN7mVpMnxh5P06Mr89OHpe8QfecWJ0WJRPHbA7H/dtuiFlu/6SKF+NN1vhPRF0dKLW3RbPvvAeCgSU+Vlk/eZOe+B1+LfdtVWbI9ZVNP4Y339gXkz9wmabJ604hxJ997f3PlKo8mj7dv2o6m3TX7lzt+/L/YFudAwnolfPHZxS6xuU8HSEnLHfnGCORyxP/kxnz9zs21yYiw1Idvk8iyOif0T0H195XEfPWZN7OhBmz5O+HLWHFM65RCdn7+R/Mj8Z9R3sn3etKVVjmfmlwGp6/M9Z8l9hh+JHWlrNvXM2FE5H94nYKjf1OJITjv1+URPRhzPnzotIF2o2z35/HXqaNviyYzDN+vd8LlQpztSIXf9Tq7+f4nNGLd8qXm5qzq86LLG+LnLYr9cGWVPa/O5E1QFHdbY/8fLO8mdvdQrf7y/9io4cq9/Pt+6l/Wd5/+5V0CnsfM4y4m/2dawRWwv8zuFte7XE5vfC311MntFc69uNcHS3Fk9R/Whp06m3ty6p5Odm0oN9eHIfU+sNUirGSYt3b6a6UMcd/rRtuZJldUQe7FuaGedNHLkpx9vtrKa4sLaJ3PSacO7+ymxXxxtsXhr89314HTknHUddKKhPso5OnBWOOmcNq001qicwkrGvcKpzyRcHWjO6e2iMhCXaW/0u2qrV4fOqo+y6xTLaY80bItXi05rcwmiMKvVfl7t8LCrtQNxNWcYZbLa4FnqrFez7MWexwzW8jz8voSLTq06C8vDsiah4xd22MJqmQvLPFvnwxH5s3pj1GqavRUGzE4Kxz0va0jNapsp9rIicJnJse+zbXJoOcWS/VnJiL5rla02NM/VxmqfCfH89IvJOfSdoszTL6HnN6pKTSBVpv1JbXEcbptf6+mHmxda6da/qy/OECy0/2ie4KVZ58cuPI0hhV3YlPTqMbbaTvXfY9GUtOqJdsQahgvrmpJihUgk4jEJappg+vqRCufF1US78+hTJoPB3+PXU2ba/S8HU3ZBNdzBVbpROh0KKqnSr8fO54wl3n49ReL5qWqtqQYTVj+VGhng0S81atZoTPuSS8mTjhH3WdsYtYZjb9dIKp7OtnaPRUrNJ4v2iGwaKl3Z7NCAPGKvp0+B/tQW1ppRyr7LAD9XHxUzknj5bJ8TRDz4eak1DMmU511fE4S28lBSBhMmeLCvQyd4ntOqpqxzNit9rPRzlcGsktP1TT9cFHWzkhTFh/pUJxyQJ1t9Jq2zuE/Dl3j+Tql55Xd9qeP4/uaIF+Yl8dWSrg++iYsaNWtgpl0kvXdVeF5SRtMmzHvucpyp1NTytR67IjtlU71maqL4yZHtre+0pIwmTuhY6anv40pNLh/roSuMdno2iQydcEwU9s7+sFXN3WRuz1yR3fO5Gs1Ode4oetXE8ZS4NXv45MD1SN/nvZiexHvXG3G8XVnzm4KuJ/pVpQhITteDLsavrdcQIIob330PFf66MWIh4MJK1z2EsvtztToGROa7h9Jt/J/KomDYZTiS/V6uCwokkrsw6i4+V1kczG/pu4qPX9GaBYMkK8d3E/YcsqMWCPZ2qAsjsssqZZEwq1znxvObymJh8s6NDDxRR4PkiY6vGRw/1Yj5oHDZT3V6bhfxJlVGo1gw6tB+UFk8TN6Z..."></div>
+      <div class="header-title">护士批量上夜排班</div>
+    </div>
+    <div class="form-page" style="max-width:800px">
+      <div class="form-section">
+        <div class="form-section-title">📅 排班日期</div>
+        <input type="date" id="nightBatchDate" class="bind-input">
+        <p class="form-hint">默认为当日。16:00前保存排班会在16:00后自动更新；16:00后保存则立即生效。</p>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">👥 上夜护理组长</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="nightLeaderName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">未选择</span>
+          <button class="btn btn-sm btn-primary" onclick="openNightLeaderSearch('upper')">选择组长</button>
+          <button class="btn btn-sm btn-clear" onclick="clearNightLeader('upper')">清除</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">👩‍⚕️ 组员列表</div>
+        <div id="nightMembersContainer"></div>
+        <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="openNightMemberSearch('upper')">+ 添加组员</button>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block" onclick="saveNightBatchSchedule('upper')">✅ 保存排班</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.1.6: 护士批量下夜排班页面 -->
+  <div class="page" id="page-nurse-batch-night-late">
+    <div class="header">
+      <button class="back-btn" onclick="showPage('admin')">←</button>
+      <div class="header-logo"><img src="data:image/webp;base64,UklGRrxLAABXRUJQVlA4WAoAAAAQAAAAKwEAKwEAQUxQSDYKAAABDl/Y/xmS5P9fZnb1YjyztnfP9m0M3rYHZ28eunvetq3BtbZt2zbHttbere6quq6KrCxlRjwPn6+MjMiIgAXZatuKYiyQUF61nSJL95NZ5VAGKl4Y53EHTZ313T+feNEtjy7fsP2VN98ZqUvxzpuv+Nw+Wl7k/vzdWdMOGtf6eCt+QIQG5ch525LvqM/9aOHVj61/tdE1O/FcOFQe2ZIuqgxYE1LovMQ62GP60On3b641Wpgc9Z6sN7mVpMnxh5P06Mr89OHpe8QfecWJ0WJRPHbA7H/dtuiFlu/6SKF+NN1vhPRF0dKLW3RbPvvAeCgSU+Vlk/eZOe+B1+LfdtVWbI9ZVNP4Y339gXkz9wmabJ604hxJ997f3PlKo8mj7dv2o6m3TX7lzt+/L/YFudAwnolfPHZxS6xuU8HSEnLHfnGCORyxP/kxnz9zs21yYiw1Idvk8iyOif0T0H195XEfPWZN7OhBmz5O+HLWHFM65RCdn7+R/Mj8Z9R3sn3etKVVjmfmlwGp6/M9Z8l9hh+JHWlrNvXM2FE5H94nYKjf1OJITjv1+URPRhzPnzotIF2o2z35/HXqaNviyYzDN+vd8LlQpztSIXf9Tq7+f4nNGLd8qXm5qzq86LLG+LnLYr9cGWVPa/O5E1QFHdbY/8fLO8mdvdQrf7y/9io4cq9/Pt+6l/Wd5/+5V0CnsfM4y4m/2dawRWwv8zuFte7XE5vfC311MntFc69uNcHS3Fk9R/Whp06m3ty6p5Odm0oN9eHIfU+sNUirGSYt3b6a6UMcd/rRtuZJldUQe7FuaGedNHLkpx9vtrKa4sLaJ3PSacO7+ymxXxxtsXhr89314HTknHUddKKhPso5OnBWOOmcNq001qicwkrGvcKpzyRcHWjO6e2iMhCXaW/0u2qrV4fOqo+y6xTLaY80bItXi05rcwmiMKvVfl7t8LCrtQNxNWcYZbLa4FnqrFez7MWexwzW8jz8voSLTq06C8vDsiah4xd22MJqmQvLPFvnwxH5s3pj1GqavRUGzE4Kxz0va0jNapsp9rIicJnJse+zbXJoOcWS/VnJiL5rla02NM/VxmqfCfH89IvJOfSdoszTL6HnN6pKTSBVpv1JbXEcbptf6+mHmxda6da/qy/OECy0/2ie4KVZ58cuPI0hhV3YlPTqMbbaTvXfY9GUtOqJdsQahgvrmpJihUgk4jEJappg+vqRCufF1US78+hTJoPB3+PXU2ba/S8HU3ZBNdzBVbpROh0KKqnSr8fO54wl3n49ReL5qWqtqQYTVj+VGhng0S81atZoTPuSS8mTjhH3WdsYtYZjb9dIKp7OtnaPRUrNJ4v2iGwaKl3Z7NCAPGKvp0+B/tQW1ppRyr7LAD9XHxUzknj5bJ8TRDz4eak1DMmU511fE4S28lBSBhMmeLCvQyd4ntOqpqxzNit9rPRzlcGsktP1TT9cFHWzkhTFh/pUJxyQJ1t9Jq2zuE/Dl3j+Tql55Xd9qeP4/uaIF+Yl8dWSrg++iYsaNWtgpl0kvXdVeF5SRtMmzHvucpyp1NTytR67IjtlU71maqL4yZHtre+0pIwmTuhY6anv40pNLh/roSuMdno2iQydcEwU9s7+sFXN3WRuz1yR3fO5Gs1Ode4oetXE8ZS4NXv45MD1SN/nvZiexHvXG3G8XVnzm4KuJ/pVpQhITteDLsavrdcQIIob330PFf66MWIh4MJK1z2EsvtztToGROa7h9Jt/J/KomDYZTiS/V6uCwokkrsw6i4+V1kczG/pu4qPX9GaBYMkK8d3E/YcsqMWCPZ2qAsjsssqZZEwq1znxvObymJh8s6NDDxRR4PkiY6vGRw/1Yj5oHDZT3V6bhfxJlVGo1gw6tB+UFk8TN6Z..."></div>
+      <div class="header-title">护士批量下夜排班</div>
+    </div>
+    <div class="form-page" style="max-width:800px">
+      <div class="form-section">
+        <div class="form-section-title">📅 排班日期</div>
+        <input type="date" id="nightLateBatchDate" class="bind-input">
+        <p class="form-hint">默认为上一日（下夜班从当日00:00开始）。00:00前保存排班会在00:00后自动更新；00:00后保存则立即生效。</p>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">👥 下夜护理组长</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="nightLateLeaderName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">未选择</span>
+          <button class="btn btn-sm btn-primary" onclick="openNightLeaderSearch('late')">选择组长</button>
+          <button class="btn btn-sm btn-clear" onclick="clearNightLeader('late')">清除</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">👩‍⚕️ 组员列表</div>
+        <div id="nightLateMembersContainer"></div>
+        <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="openNightMemberSearch('late')">+ 添加组员</button>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block" onclick="saveNightBatchSchedule('late')">✅ 保存排班</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.1.7: 医疗组设置页面 -->
+  <div class="page" id="page-medical-groups">
+    <div class="header">
+      <button class="back-btn" onclick="showPage('admin')">←</button>
+      <div class="header-title">医疗组设置</div>
+    </div>
+    <div class="form-page" style="max-width:800px">
+      <div class="form-section">
+        <div class="form-section-title">➕ 新建医疗组</div>
+        <div class="form-hint">选择医疗组长，再选择组员</div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;margin-bottom:5px;font-weight:600">医疗组长</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="newGroupLeaderName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">未选择</span>
+            <button class="btn btn-sm btn-primary" onclick="openGroupLeaderSearch()">选择组长</button>
+            <button class="btn btn-sm btn-clear" onclick="clearGroupLeader()">清除</button>
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;margin-bottom:5px;font-weight:600">医疗组员</label>
+          <div id="newGroupMembersList" style="margin-bottom:8px"></div>
+          <button class="btn btn-sm btn-primary" onclick="openGroupMemberSearch()">+ 添加组员</button>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="addMedicalGroup()">保存医疗组</button>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">📋 已有医疗组</div>
+        <div id="medicalGroupsList"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -611,7 +734,8 @@ const API_BASE = 'https://api.npoint.io/';
 const SPECIAL_LABELS = {
   quality: '质控', order: '医嘱', tidy: '整理', infection: '感控',
   respiratory: '呼吸', rehabilitation: '康复', early: '助早',
-  order84: '医嘱84', teaching: '带教', standby: '备班', dayoff: '公休'
+  order84: '医嘱84', teaching: '带教', standby: '备班', dayoff: '公休',
+  nightUpperLeader: '上夜护理组长', nightLateLeader: '下夜护理组长'
 };
 
 const SPECIAL_ALIASES = {
@@ -635,16 +759,23 @@ let appData = {
   assignments: {
     beds: {},
     duty: { firstLineDay: [], secondLineDay: [], firstLineNight: [], secondLineNight: [] },
-    special: { quality: [], order: [], tidy: [], infection: [], respiratory: [], rehabilitation: [], early: [], order84: [], teaching: [], standby: [], dayoff: [] }
+    special: { quality: [], order: [], tidy: [], infection: [], respiratory: [], rehabilitation: [], early: [], order84: [], teaching: [], standby: [], dayoff: [], nightUpperLeader: [], nightLateLeader: [] }
   },
   adminPwd: 'admin123',
   updatedAt: Date.now(),
   weeklyDoctorSchedule: { currentWeek: {}, nextWeek: {} },
   pendingNurseSchedule: null,
+  pendingNightSchedule: null,
+  pendingNightLateSchedule: null,
+  nightShiftUpper: null,
+  nightShiftLate: null,
   lastNurseBatchScheduleDate: '',
   lastAutoClearDate: '',
+  lastAutoClearDayDate: '',
+  lastAutoClearNightDate: '',
   lastDailyDutyUpdate: '',
-  dutyManualOverrideUntil: 0
+  dutyManualOverrideUntil: 0,
+  medicalGroups: []
 };
 
 // 初始化31-59号床位（共29张）
@@ -897,10 +1028,17 @@ function migrateData() {
   if (!appData.weeklyDoctorSchedule.currentWeek) appData.weeklyDoctorSchedule.currentWeek = {};
   if (!appData.weeklyDoctorSchedule.nextWeek) appData.weeklyDoctorSchedule.nextWeek = {};
   if (appData.pendingNurseSchedule === undefined) appData.pendingNurseSchedule = null;
+  if (appData.pendingNightSchedule === undefined) appData.pendingNightSchedule = null;
+  if (appData.pendingNightLateSchedule === undefined) appData.pendingNightLateSchedule = null;
+  if (appData.nightShiftUpper === undefined) appData.nightShiftUpper = null;
+  if (appData.nightShiftLate === undefined) appData.nightShiftLate = null;
   if (!appData.lastNurseBatchScheduleDate) appData.lastNurseBatchScheduleDate = '';
   if (!appData.lastAutoClearDate) appData.lastAutoClearDate = '';
+  if (appData.lastAutoClearDayDate === undefined) appData.lastAutoClearDayDate = '';
+  if (appData.lastAutoClearNightDate === undefined) appData.lastAutoClearNightDate = '';
   if (!appData.lastDailyDutyUpdate) appData.lastDailyDutyUpdate = '';
   if (!appData.dutyManualOverrideUntil) appData.dutyManualOverrideUntil = 0;
+  if (!appData.medicalGroups) appData.medicalGroups = [];
 }
 
 function getCurrentShiftEnd() {
@@ -1018,7 +1156,7 @@ function renderHome() {
       <div class="bed-card ${isTemp ? 'temp-bed' : ''} ${isEmpty ? 'empty-bed' : ''}">
         <div class="bed-number" onclick="openBedModal(${i})">
           <span class="${badgeClass}">🛏️ ${i}床</span>
-          ${isTemp ? `<span class="temp-info">（<span class="temp-label">暂管医生</span>：<span class="temp-name">${tempDoctorName}</span>）</span>` : ''}
+          ${isTemp ? `<span class="temp-info">（<span class="temp-label">暂管医生</span>：<span class="temp-name">${nameToLink(tempDoctorName, findDoctorPhoneByName(tempDoctorName), '医生')}</span>）</span>` : ''}
           ${isEmpty ? '<span class="empty-tag">（空床）</span>' : ''}
         </div>
         <div class="bed-info">
@@ -1116,13 +1254,15 @@ function submitDoctorForm() {
   const myId = currentUser.id;
   for (let i = 31; i <= 59; i++) {
     if (appData.assignments.beds[i].doctorId === myId) appData.assignments.beds[i].doctorId = null;
-    if (appData.assignments.beds[i].tempDoctorId === myId) appData.assignments.beds[i].tempDoctorId = null;
+    if (appData.assignments.beds[i].tempDoctorId === myId) { appData.assignments.beds[i].tempDoctorId = null; appData.assignments.beds[i].tempDoctorAt = null; }
   }
   document.querySelectorAll('#doctorPrimaryBeds .bed-select-btn.selected').forEach(btn => {
     appData.assignments.beds[parseInt(btn.dataset.bed)].doctorId = myId;
   });
   document.querySelectorAll('#doctorTempBeds .bed-select-btn.selected-temp').forEach(btn => {
-    appData.assignments.beds[parseInt(btn.dataset.bed)].tempDoctorId = myId;
+    const b = appData.assignments.beds[parseInt(btn.dataset.bed)];
+    b.tempDoctorId = myId;
+    b.tempDoctorAt = Date.now(); // 4.1.7: 保存后24小时自动清除
   });
   setDutyManualOverride();
   saveData();
@@ -1156,7 +1296,7 @@ function clearMyAssignments(type) {
   if (type === 'doctor') {
     for (var i = 31; i <= 59; i++) {
       if (appData.assignments.beds[i].doctorId === myId) appData.assignments.beds[i].doctorId = null;
-      if (appData.assignments.beds[i].tempDoctorId === myId) appData.assignments.beds[i].tempDoctorId = null;
+      if (appData.assignments.beds[i].tempDoctorId === myId) { appData.assignments.beds[i].tempDoctorId = null; appData.assignments.beds[i].tempDoctorAt = null; }
     }
     appData.assignments.duty.firstLineDay = appData.assignments.duty.firstLineDay.filter(function(id) { return id !== myId; });
     appData.assignments.duty.secondLineDay = appData.assignments.duty.secondLineDay.filter(function(id) { return id !== myId; });
@@ -1179,15 +1319,12 @@ function clearMyAssignments(type) {
 }
 
 // ========== 床位编辑弹窗 ==========
+// 4.1.6: 改为搜索姓名选择
+var bedEditDraft = { nurseId: null, doctorId: null, tempDoctorId: null };
 function openBedModal(bedNum) {
   editingBedNum = bedNum;
   const bed = appData.assignments.beds[bedNum];
-  const nurseOptions = ['<option value="">未安排</option>'].concat(appData.staff.nurses.map(n =>
-    `<option value="${n.id}" ${bed.primaryNurseId === n.id ? 'selected' : ''}>${n.name}</option>`)).join('');
-  const doctorOptions = ['<option value="">未安排</option>'].concat(appData.staff.doctors.map(d =>
-    `<option value="${d.id}" ${bed.doctorId === d.id ? 'selected' : ''}>${d.name}</option>`)).join('');
-  const tempDoctorOptions = ['<option value="">无</option>'].concat(appData.staff.doctors.map(d =>
-    `<option value="${d.id}" ${bed.tempDoctorId === d.id ? 'selected' : ''}>${d.name}</option>`)).join('');
+  bedEditDraft = { nurseId: bed.primaryNurseId, doctorId: bed.doctorId, tempDoctorId: bed.tempDoctorId };
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.id = 'bedModal';
@@ -1195,15 +1332,97 @@ function openBedModal(bedNum) {
   modal.innerHTML = `
     <div class="modal">
       <h3>编辑 ${bedNum}床</h3>
-      <div class="form-group"><label>责任护士</label><select id="modalNurse" class="bind-input">${nurseOptions}</select></div>
-      <div class="form-group"><label>主管医生</label><select id="modalDoctor" class="bind-input">${doctorOptions}</select></div>
-      <div class="form-group"><label>暂管医生</label><select id="modalTempDoctor" class="bind-input">${tempDoctorOptions}</select></div>
+      <div class="form-group"><label>责任护士</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="bedModalNurseName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">${bed.primaryNurseId ? findNurseName(bed.primaryNurseId) : '未安排'}</span>
+          <button class="btn btn-sm btn-primary" onclick="openBedStaffSearch('nurse')">选择</button>
+          <button class="btn btn-sm btn-clear" onclick="clearBedStaffSelection('nurse')">清除</button>
+        </div>
+      </div>
+      <div class="form-group"><label>主管医生</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="bedModalDoctorName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">${bed.doctorId ? findDoctorName(bed.doctorId) : '未安排'}</span>
+          <button class="btn btn-sm btn-primary" onclick="openBedStaffSearch('doctor')">选择</button>
+          <button class="btn btn-sm btn-clear" onclick="clearBedStaffSelection('doctor')">清除</button>
+        </div>
+      </div>
+      <div class="form-group"><label>暂管医生</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="bedModalTempDoctorName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">${bed.tempDoctorId ? findDoctorName(bed.tempDoctorId) : '无'}</span>
+          <button class="btn btn-sm btn-primary" onclick="openBedStaffSearch('tempDoctor')">选择</button>
+          <button class="btn btn-sm btn-clear" onclick="clearBedStaffSelection('tempDoctor')">清除</button>
+        </div>
+      </div>
       <div style="display:flex;gap:10px;margin-top:15px">
         <button class="btn btn-primary" style="flex:1" onclick="saveBedEdit()">保存</button>
         <button class="btn" style="flex:1;background:#ccc" onclick="closeBedModal()">取消</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
+}
+function openBedStaffSearch(role) {
+  var isNurse = role === 'nurse';
+  var staffList = isNurse ? appData.staff.nurses : appData.staff.doctors;
+  var currentId = role === 'nurse' ? bedEditDraft.nurseId : role === 'doctor' ? bedEditDraft.doctorId : bedEditDraft.tempDoctorId;
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'bedStaffSearchModal';
+  modal.innerHTML = `
+    <div class="modal" style="max-height:75vh;overflow-y:auto">
+      <h3>选择${isNurse ? '护士' : '医生'}</h3>
+      <input type="text" id="bedStaffSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterBedStaffList('${role}')">
+      <div class="staff-search-list" id="bedStaffSearchList" style="margin-top:10px"></div>
+      <div class="modal-actions">
+        <button class="btn" style="background:#ccc" onclick="closeBedStaffSearchModal()">取消</button>
+      </div>
+    </div>`;
+  modal.onclick = function(e) { if (e.target === modal) closeBedStaffSearchModal(); };
+  document.body.appendChild(modal);
+  window.__bedStaffSearchRole = role;
+  renderBedStaffSearchList(staffList, '', currentId);
+  document.getElementById('bedStaffSearchInput').focus();
+}
+function renderBedStaffSearchList(staffList, keyword, currentId) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = staffList.filter(function(s) {
+    if (!k) return true;
+    if (s.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(s.name), k);
+  });
+  var list = document.getElementById('bedStaffSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配</div>'; return; }
+  list.innerHTML = filtered.map(function(s) {
+    return '<div class="staff-search-item" onclick="selectBedStaff(\'' + s.id + '\')">' +
+      '<span>' + s.name + '</span>' +
+      (s.id === currentId ? '<span class="type-tag">当前</span>' : '') +
+      '</div>';
+  }).join('');
+}
+function filterBedStaffList(role) {
+  var isNurse = role === 'nurse';
+  var staffList = isNurse ? appData.staff.nurses : appData.staff.doctors;
+  var currentId = role === 'nurse' ? bedEditDraft.nurseId : role === 'doctor' ? bedEditDraft.doctorId : bedEditDraft.tempDoctorId;
+  var keyword = document.getElementById('bedStaffSearchInput').value;
+  renderBedStaffSearchList(staffList, keyword, currentId);
+}
+function selectBedStaff(id) {
+  var role = window.__bedStaffSearchRole;
+  var name;
+  if (role === 'nurse') { bedEditDraft.nurseId = id; name = findNurseName(id); document.getElementById('bedModalNurseName').textContent = name; }
+  else if (role === 'doctor') { bedEditDraft.doctorId = id; name = findDoctorName(id); document.getElementById('bedModalDoctorName').textContent = name; }
+  else { bedEditDraft.tempDoctorId = id; name = findDoctorName(id); document.getElementById('bedModalTempDoctorName').textContent = name; }
+  closeBedStaffSearchModal();
+}
+function clearBedStaffSelection(role) {
+  if (role === 'nurse') { bedEditDraft.nurseId = null; document.getElementById('bedModalNurseName').textContent = '未安排'; }
+  else if (role === 'doctor') { bedEditDraft.doctorId = null; document.getElementById('bedModalDoctorName').textContent = '未安排'; }
+  else { bedEditDraft.tempDoctorId = null; document.getElementById('bedModalTempDoctorName').textContent = '无'; }
+}
+function closeBedStaffSearchModal() {
+  var modal = document.getElementById('bedStaffSearchModal');
+  if (modal) modal.remove();
+  window.__bedStaffSearchRole = null;
 }
 function closeBedModal() {
   const modal = document.getElementById('bedModal');
@@ -1213,9 +1432,12 @@ function closeBedModal() {
 function saveBedEdit() {
   if (!editingBedNum) return;
   const bed = appData.assignments.beds[editingBedNum];
-  bed.primaryNurseId = document.getElementById('modalNurse').value || null;
-  bed.doctorId = document.getElementById('modalDoctor').value || null;
-  bed.tempDoctorId = document.getElementById('modalTempDoctor').value || null;
+  bed.primaryNurseId = bedEditDraft.nurseId || null;
+  bed.doctorId = bedEditDraft.doctorId || null;
+  bed.tempDoctorId = bedEditDraft.tempDoctorId || null;
+  // 4.1.7: 暂管医生保存后24小时自动清除，每次保存重置计时
+  if (bed.tempDoctorId) bed.tempDoctorAt = Date.now();
+  else bed.tempDoctorAt = null;
   saveData();
   closeBedModal();
   renderHome();
@@ -1294,6 +1516,12 @@ function switchAdminTab(tab) {
     batchBtn.textContent = tab === 'doctor' ? '医生值班周排班' : '护士批量日排班';
     batchBtn.onclick = tab === 'doctor' ? () => showDoctorWeeklyPage('currentWeek') : showNurseBatchPage;
   }
+  // 4.1.7: 医生tab时显示医疗组设置按钮
+  const medicalGroupBtn = document.getElementById('medicalGroupBtn');
+  if (medicalGroupBtn) medicalGroupBtn.style.display = tab === 'doctor' ? 'block' : 'none';
+  // 4.1.6: 护士tab时显示上夜/下夜/已排班未生效按钮
+  const nurseBatchBtns = document.getElementById('nurseBatchButtons');
+  if (nurseBatchBtns) nurseBatchBtns.style.display = tab === 'nurse' ? 'flex' : 'none';
   if (tab === 'doctor' || tab === 'nurse') {
     document.getElementById('addStaffTitle').textContent = tab === 'doctor' ? '➕ 添加医生' : '➕ 添加护士';
     renderStaffList();
@@ -1305,6 +1533,78 @@ function gotoBatchSchedule() {
 }
 function showNurseBatchPage() {
   showPage('nurse-batch');
+}
+// 4.1.6: 查看已排班未生效的排班
+function viewPendingSchedule() {
+  var pending = appData.pendingNurseSchedule;
+  var pendingNight = appData.pendingNightSchedule;
+  var pendingNightLate = appData.pendingNightLateSchedule;
+  var hasAny = pending || pendingNight || pendingNightLate;
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'pendingScheduleModal';
+  modal.innerHTML = '<div class="modal" style="max-width:500px;max-height:80vh;overflow-y:auto">' +
+    '<h3>已排班未生效</h3>' +
+    (hasAny ? '<div id="pendingList"></div>' : '<p style="text-align:center;color:var(--text-light);padding:20px">当前没有待生效的排班</p>') +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closePendingScheduleModal()">关闭</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closePendingScheduleModal(); };
+  document.body.appendChild(modal);
+  if (hasAny) {
+    var list = document.getElementById('pendingList');
+    var html = '';
+    if (pending) {
+      html += '<div class="form-section" style="margin-bottom:10px"><div class="form-section-title">日排班 - ' + pending.date + '</div>';
+      var bedCount = 0;
+      for (var bi = 31; bi <= 59; bi++) { if (pending.beds && pending.beds[bi]) bedCount++; }
+      html += '<p style="font-size:0.9em">已排床位: ' + bedCount + '张</p>';
+      html += '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-sm btn-primary" onclick="editPendingSchedule(\'day\')">编辑</button>';
+      html += '<button class="btn btn-sm btn-danger" onclick="deletePendingSchedule(\'day\')">删除</button></div></div>';
+    }
+    if (pendingNight) {
+      html += '<div class="form-section" style="margin-bottom:10px"><div class="form-section-title">上夜排班 - ' + pendingNight.date + '</div>';
+      html += '<p style="font-size:0.9em">组长: ' + (pendingNight.leader ? findNurseName(pendingNight.leader) : '未设置') + '</p>';
+      html += '<p style="font-size:0.9em">组员: ' + (pendingNight.members ? pendingNight.members.length : 0) + '人</p>';
+      html += '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-sm btn-primary" onclick="editPendingSchedule(\'night\')">编辑</button>';
+      html += '<button class="btn btn-sm btn-danger" onclick="deletePendingSchedule(\'night\')">删除</button></div></div>';
+    }
+    if (pendingNightLate) {
+      html += '<div class="form-section" style="margin-bottom:10px"><div class="form-section-title">下夜排班 - ' + pendingNightLate.date + '</div>';
+      html += '<p style="font-size:0.9em">组长: ' + (pendingNightLate.leader ? findNurseName(pendingNightLate.leader) : '未设置') + '</p>';
+      html += '<p style="font-size:0.9em">组员: ' + (pendingNightLate.members ? pendingNightLate.members.length : 0) + '人</p>';
+      html += '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-sm btn-primary" onclick="editPendingSchedule(\'nightLate\')">编辑</button>';
+      html += '<button class="btn btn-sm btn-danger" onclick="deletePendingSchedule(\'nightLate\')">删除</button></div></div>';
+    }
+    list.innerHTML = html;
+  }
+}
+function closePendingScheduleModal() {
+  var modal = document.getElementById('pendingScheduleModal');
+  if (modal) modal.remove();
+}
+function editPendingSchedule(type) {
+  closePendingScheduleModal();
+  if (type === 'day') {
+    var p = appData.pendingNurseSchedule;
+    if (!p) return;
+    showPage('nurse-batch');
+    document.getElementById('batchScheduleDate').value = p.date;
+    batchScheduleDraft = JSON.parse(JSON.stringify(p));
+    renderBatchPage();
+  } else if (type === 'night') {
+    showPage('nurse-batch-night');
+  } else if (type === 'nightLate') {
+    showPage('nurse-batch-night-late');
+  }
+}
+function deletePendingSchedule(type) {
+  if (!confirm('确定删除此待生效排班？')) return;
+  if (type === 'day') appData.pendingNurseSchedule = null;
+  else if (type === 'night') appData.pendingNightSchedule = null;
+  else if (type === 'nightLate') appData.pendingNightLateSchedule = null;
+  saveData();
+  closePendingScheduleModal();
+  viewPendingSchedule();
 }
 function renderStaffList() {
   const list = currentAdminTab === 'doctor' ? appData.staff.doctors : appData.staff.nurses;
@@ -1377,12 +1677,17 @@ function deleteStaff(id) {
 }
 function clearTodayNurseAssignments() {
   console.log('clearTodayNurseAssignments called');
-  if (!confirm('确定要清空今日护士排班吗？\n\n责任床位、专项岗位都会被清除，人员名单不会删除。')) return;
+  if (!confirm('确定要清空今日护士排班吗？\n\n责任床位、专项岗位、夜班排班都会被清除，人员名单不会删除。')) return;
   for (var i = 31; i <= 59; i++) {
     if (appData.assignments.beds[i]) appData.assignments.beds[i].primaryNurseId = null;
   }
   var keys = Object.keys(appData.assignments.special);
   for (var ki = 0; ki < keys.length; ki++) appData.assignments.special[keys[ki]] = [];
+  // 4.1.6: 同时清除夜班排班
+  appData.nightShiftUpper = null;
+  appData.nightShiftLate = null;
+  appData.pendingNightSchedule = null;
+  appData.pendingNightLateSchedule = null;
   saveData();
   renderHome();
   console.log('clearTodayNurseAssignments done');
@@ -1395,6 +1700,7 @@ function clearTodayDoctorAssignments() {
     if (appData.assignments.beds[i]) {
       appData.assignments.beds[i].doctorId = null;
       appData.assignments.beds[i].tempDoctorId = null;
+      appData.assignments.beds[i].tempDoctorAt = null;
     }
   }
   appData.assignments.duty.firstLineDay = [];
@@ -1484,7 +1790,7 @@ function collectLocalChanges(localData, snapshot) {
         }
       }
     }
-    var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','lastNurseBatchScheduleDate','lastAutoClearDate','lastDailyDutyUpdate','dutyManualOverrideUntil','adminPwd'];
+    var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','pendingNightSchedule','pendingNightLateSchedule','nightShiftUpper','nightShiftLate','lastNurseBatchScheduleDate','lastAutoClearDate','lastAutoClearDayDate','lastAutoClearNightDate','lastDailyDutyUpdate','dutyManualOverrideUntil','medicalGroups','adminPwd'];
     for (var ai = 0; ai < adminFields.length; ai++) {
       var af = adminFields[ai];
       if (JSON.stringify(localData[af]) !== JSON.stringify(snapshot[af])) changes['admin.' + af] = localData[af];
@@ -1581,7 +1887,7 @@ function mergeCloudData(localData, cloudData, snapshot) {
   }
 
   // 管理员级字段: 本地改了才覆盖
-  var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','lastNurseBatchScheduleDate','lastAutoClearDate','lastDailyDutyUpdate','dutyManualOverrideUntil','adminPwd'];
+  var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','pendingNightSchedule','pendingNightLateSchedule','nightShiftUpper','nightShiftLate','lastNurseBatchScheduleDate','lastAutoClearDate','lastDailyDutyUpdate','dutyManualOverrideUntil','adminPwd'];
   for (var af of adminFields) {
     if (JSON.stringify(localData[af]) !== JSON.stringify(snapshot[af])) {
       merged[af] = localData[af];
@@ -1902,9 +2208,21 @@ function showPage(pageName) {
     if (!nbPage) { return; }
     nbPage.classList.add('active');
     initBatchSchedulePage();
+  } else if (pageName === 'nurse-batch-night') {
+    var nbPage2 = document.getElementById('page-nurse-batch-night');
+    if (nbPage2) { nbPage2.classList.add('active'); initNightBatchPage('upper'); }
+  } else if (pageName === 'nurse-batch-night-late') {
+    var nbPage3 = document.getElementById('page-nurse-batch-night-late');
+    if (nbPage3) { nbPage3.classList.add('active'); initNightBatchPage('late'); }
   } else if (pageName === 'doctor-weekly') {
     document.getElementById('page-doctor-weekly').classList.add('active');
     renderDoctorWeeklyPage();
+  } else if (pageName === 'medical-groups') {
+    document.getElementById('page-medical-groups').classList.add('active');
+    initMedicalGroupsPage();
+  } else if (pageName === 'medical-group-search') {
+    document.getElementById('page-medical-group-search').classList.add('active');
+    initMedGroupSearchPage();
   } else {
     document.getElementById('page-home').classList.add('active');
     renderHome();
@@ -1978,28 +2296,20 @@ function saveNurseBatchSchedule() {
   if (!dateVal) { alert('请选择排班日期'); return; }
   batchScheduleDraft.date = dateVal;
   const today = dateStr(new Date());
-  const tomorrow = dateStr(new Date(Date.now() + 86400000));
   appData.lastNurseBatchScheduleDate = today;
   if (dateVal === today) {
+    // 4.1.6: 选择当日保存后立即生效
     applyNurseBatchSchedule(batchScheduleDraft);
     appData.pendingNurseSchedule = null;
     saveData();
     alert('今日排班已保存并立即生效');
     showPage('admin');
-  } else if (dateVal === tomorrow) {
-    const now = new Date();
-    if (now.getHours() < 16) {
-      appData.pendingNurseSchedule = JSON.parse(JSON.stringify(batchScheduleDraft));
-      saveData();
-      alert('保存成功，会在16点后更新排班');
-      showPage('admin');
-    } else {
-      applyNurseBatchSchedule(batchScheduleDraft);
-      appData.pendingNurseSchedule = null;
-      saveData();
-      alert('次日排班已保存并立即生效');
-      showPage('admin');
-    }
+  } else if (dateVal > today) {
+    // 4.1.6: 选择次日排班会保存在后台，在次日08:00后自动更新到主界面
+    appData.pendingNurseSchedule = JSON.parse(JSON.stringify(batchScheduleDraft));
+    saveData();
+    alert('次日排班已保存，将在次日08:00后自动更新到主界面');
+    showPage('admin');
   } else {
     applyNurseBatchSchedule(batchScheduleDraft);
     appData.pendingNurseSchedule = null;
@@ -2079,6 +2389,753 @@ function addNewNurseFromModal() {
   onNurseSelect(nurse.id);
 }
 
+// ========== 4.1.6: 护士批量上夜/下夜排班 ==========
+var nightBatchDraft = { leader: null, members: [], date: '' };
+function initNightBatchPage(type) {
+  if (type === 'upper') {
+    var today = dateStr(new Date());
+    document.getElementById('nightBatchDate').value = today;
+    nightBatchDraft = { leader: null, members: [], date: today };
+    // 从localStorage恢复同一终端上次的选择
+    var saved = localStorage.getItem('icu3_night_upper');
+    if (saved) {
+      try {
+        var savedData = JSON.parse(saved);
+        nightBatchDraft.leader = savedData.leader || null;
+        nightBatchDraft.members = savedData.members || [];
+      } catch(e) {}
+    }
+    // 如果有待生效的上夜排班，加载它
+    var pending = appData.pendingNightSchedule;
+    if (pending && pending.date === today) {
+      nightBatchDraft.leader = pending.leader;
+      nightBatchDraft.members = JSON.parse(JSON.stringify(pending.members));
+    }
+    renderNightBatchPage('upper');
+  } else {
+    var yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    var yDate = dateStr(yesterday);
+    document.getElementById('nightLateBatchDate').value = yDate;
+    nightBatchDraft = { leader: null, members: [], date: yDate };
+    var savedLate = localStorage.getItem('icu3_night_late');
+    if (savedLate) {
+      try {
+        var savedDataLate = JSON.parse(savedLate);
+        nightBatchDraft.leader = savedDataLate.leader || null;
+        nightBatchDraft.members = savedDataLate.members || [];
+      } catch(e) {}
+    }
+    var pendingLate = appData.pendingNightLateSchedule;
+    if (pendingLate && pendingLate.date === yDate) {
+      nightBatchDraft.leader = pendingLate.leader;
+      nightBatchDraft.members = JSON.parse(JSON.stringify(pendingLate.members));
+    }
+    renderNightBatchPage('late');
+  }
+}
+function renderNightBatchPage(type) {
+  var leaderName = nightBatchDraft.leader ? findNurseName(nightBatchDraft.leader) : '未选择';
+  var leaderElId = type === 'upper' ? 'nightLeaderName' : 'nightLateLeaderName';
+  document.getElementById(leaderElId).textContent = leaderName;
+  var containerId = type === 'upper' ? 'nightMembersContainer' : 'nightLateMembersContainer';
+  var container = document.getElementById(containerId);
+  if (nightBatchDraft.members.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:10px">暂无组员，点击下方按钮添加</p>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < nightBatchDraft.members.length; i++) {
+    var m = nightBatchDraft.members[i];
+    var mName = m.nurseId ? findNurseName(m.nurseId) : '未选择';
+    var bedStr = m.beds && m.beds.length > 0 ? m.beds.join('、') : '未分配床位';
+    html += '<div style="border:2px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    html += '<div style="display:flex;gap:8px;align-items:center;flex:1">';
+    html += '<span style="font-weight:600">' + mName + '</span>';
+    html += '</div>';
+    html += '<button class="btn btn-sm btn-clear" onclick="removeNightMember(' + i + ',\'' + type + '\')">移除</button>';
+    html += '</div>';
+    html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">';
+    html += '<span style="font-size:0.9em;color:var(--text-light)">床位:</span>';
+    html += '<span id="nightMemberBeds_' + i + '" style="flex:1;font-size:0.95em">' + bedStr + '</span>';
+    html += '<button class="btn btn-sm btn-primary" onclick="openNightBedSelector(' + i + ',\'' + type + '\')">选择床位</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+function openNightLeaderSearch(type) {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'nightLeaderSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>选择护理组长</h3>' +
+    '<input type="text" id="nightLeaderSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterNightLeaderSearch()">' +
+    '<div class="staff-search-list" id="nightLeaderSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeNightLeaderSearchModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeNightLeaderSearchModal(); };
+  document.body.appendChild(modal);
+  window.__nightLeaderType = type;
+  renderNightLeaderSearchList('');
+  document.getElementById('nightLeaderSearchInput').focus();
+}
+function renderNightLeaderSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = appData.staff.nurses.filter(function(n) {
+    if (!k) return true;
+    if (n.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(n.name), k);
+  });
+  var list = document.getElementById('nightLeaderSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配护士</div>'; return; }
+  list.innerHTML = filtered.map(function(n) {
+    return '<div class="staff-search-item" onclick="selectNightLeader(\'' + n.id + '\')"><span>' + n.name + '</span></div>';
+  }).join('');
+}
+function filterNightLeaderSearch() {
+  renderNightLeaderSearchList(document.getElementById('nightLeaderSearchInput').value);
+}
+function selectNightLeader(id) {
+  var type = window.__nightLeaderType;
+  nightBatchDraft.leader = id;
+  localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: id, members: nightBatchDraft.members }));
+  closeNightLeaderSearchModal();
+  renderNightBatchPage(type);
+}
+function closeNightLeaderSearchModal() {
+  var modal = document.getElementById('nightLeaderSearchModal');
+  if (modal) modal.remove();
+  window.__nightLeaderType = null;
+}
+function clearNightLeader(type) {
+  nightBatchDraft.leader = null;
+  localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: null, members: nightBatchDraft.members }));
+  renderNightBatchPage(type);
+}
+function openNightMemberSearch(type) {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'nightMemberSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>添加护士组员</h3>' +
+    '<input type="text" id="nightMemberSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterNightMemberSearch()">' +
+    '<div class="staff-search-list" id="nightMemberSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeNightMemberSearchModal()">取消</button>' +
+    '<button class="btn btn-primary" onclick="addNewNurseFromNightModal()">新增护士</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeNightMemberSearchModal(); };
+  document.body.appendChild(modal);
+  window.__nightMemberType = type;
+  renderNightMemberSearchList('');
+  document.getElementById('nightMemberSearchInput').focus();
+}
+function renderNightMemberSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var existingIds = nightBatchDraft.members.map(function(m) { return m.nurseId; }).filter(function(id) { return id; });
+  if (nightBatchDraft.leader) existingIds.push(nightBatchDraft.leader);
+  var filtered = appData.staff.nurses.filter(function(n) {
+    if (existingIds.includes(n.id)) return false;
+    if (!k) return true;
+    if (n.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(n.name), k);
+  });
+  var list = document.getElementById('nightMemberSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配护士</div>'; return; }
+  list.innerHTML = filtered.map(function(n) {
+    return '<div class="staff-search-item" onclick="selectNightMember(\'' + n.id + '\')"><span>' + n.name + '</span></div>';
+  }).join('');
+}
+function filterNightMemberSearch() {
+  renderNightMemberSearchList(document.getElementById('nightMemberSearchInput').value);
+}
+function selectNightMember(id) {
+  var type = window.__nightMemberType;
+  nightBatchDraft.members.push({ nurseId: id, beds: [] });
+  localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: nightBatchDraft.leader, members: nightBatchDraft.members }));
+  closeNightMemberSearchModal();
+  renderNightBatchPage(type);
+}
+function closeNightMemberSearchModal() {
+  var modal = document.getElementById('nightMemberSearchModal');
+  if (modal) modal.remove();
+  window.__nightMemberType = null;
+}
+function addNewNurseFromNightModal() {
+  var name = prompt('请输入新护士姓名：');
+  if (!name || !name.trim()) return;
+  var nurse = { id: 's_' + Date.now(), name: name.trim(), phone: '' };
+  appData.staff.nurses.push(nurse);
+  saveData();
+  selectNightMember(nurse.id);
+}
+function removeNightMember(idx, type) {
+  nightBatchDraft.members.splice(idx, 1);
+  localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: nightBatchDraft.leader, members: nightBatchDraft.members }));
+  renderNightBatchPage(type);
+}
+function openNightBedSelector(memberIdx, type) {
+  window.__nightBedMemberIdx = memberIdx;
+  window.__nightBedType = type;
+  var member = nightBatchDraft.members[memberIdx];
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'nightBedSelectorModal';
+  var bedsHtml = '';
+  for (var i = 31; i <= 59; i++) {
+    var selected = member.beds && member.beds.includes(i);
+    bedsHtml += '<div class="bed-select-btn' + (selected ? ' selected' : '') + '" onclick="toggleNightBed(' + i + ')" data-bed="' + i + '">' + i + '床</div>';
+  }
+  modal.innerHTML = '<div class="modal" style="max-width:500px;max-height:80vh;overflow-y:auto">' +
+    '<h3>选择床位（可多选）</h3>' +
+    '<div class="bed-selector">' + bedsHtml + '</div>' +
+    '<div class="modal-actions"><button class="btn btn-primary" onclick="confirmNightBedSelection()">确认</button>' +
+    '<button class="btn" style="background:#ccc" onclick="closeNightBedSelectorModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeNightBedSelectorModal(); };
+  document.body.appendChild(modal);
+}
+function toggleNightBed(bedNum) {
+  var member = nightBatchDraft.members[window.__nightBedMemberIdx];
+  if (!member.beds) member.beds = [];
+  var idx = member.beds.indexOf(bedNum);
+  if (idx > -1) member.beds.splice(idx, 1);
+  else member.beds.push(bedNum);
+  // 更新UI
+  var btn = document.querySelector('#nightBedSelectorModal .bed-select-btn[data-bed="' + bedNum + '"]');
+  if (btn) btn.classList.toggle('selected');
+}
+function confirmNightBedSelection() {
+  var type = window.__nightBedType;
+  closeNightBedSelectorModal();
+  renderNightBatchPage(type);
+}
+function closeNightBedSelectorModal() {
+  var modal = document.getElementById('nightBedSelectorModal');
+  if (modal) modal.remove();
+  window.__nightBedMemberIdx = null;
+  window.__nightBedType = null;
+}
+function saveNightBatchSchedule(type) {
+  var dateVal = type === 'upper' ? document.getElementById('nightBatchDate').value : document.getElementById('nightLateBatchDate').value;
+  if (!dateVal) { alert('请选择排班日期'); return; }
+  if (!nightBatchDraft.leader) { alert('请选择护理组长'); return; }
+  if (nightBatchDraft.members.length === 0) { alert('请至少添加一名组员'); return; }
+  nightBatchDraft.date = dateVal;
+  var now = new Date();
+  var today = dateStr(now);
+  var scheduleCopy = JSON.parse(JSON.stringify(nightBatchDraft));
+  // 保存到localStorage
+  localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: scheduleCopy.leader, members: scheduleCopy.members }));
+  if (type === 'upper') {
+    // 上夜: 16:00前保存→16:00后自动更新; 16:00后保存→立即生效
+    if (dateVal === today && now.getHours() < 16) {
+      appData.pendingNightSchedule = scheduleCopy;
+      saveData();
+      alert('上夜排班已保存，将在16:00后自动更新到主界面');
+      showPage('admin');
+    } else {
+      applyNightShiftToBeds(scheduleCopy, 'upper');
+      appData.nightShiftUpper = scheduleCopy;
+      appData.pendingNightSchedule = null;
+      saveData();
+      alert('上夜排班已保存并立即生效');
+      showPage('admin');
+    }
+  } else {
+    // 下夜: 00:00前保存→00:00后自动更新; 00:00后保存→立即生效
+    if (today > dateVal) {
+      // 已过00:00，立即生效
+      applyNightShiftToBeds(scheduleCopy, 'late');
+      appData.nightShiftLate = scheduleCopy;
+      appData.pendingNightLateSchedule = null;
+      saveData();
+      alert('下夜排班已保存并立即生效');
+      showPage('admin');
+    } else {
+      // 还没到00:00，保存为待生效
+      appData.pendingNightLateSchedule = scheduleCopy;
+      saveData();
+      alert('下夜排班已保存，将在00:00后自动更新到主界面');
+      showPage('admin');
+    }
+  }
+}
+// 4.1.7: 夜班排班生效后，组员床位覆盖主界面床位，组长写入专项护士
+function applyNightShiftToBeds(schedule, type) {
+  // 组员床位覆盖主界面床位的primaryNurseId
+  if (schedule.members) {
+    for (var i = 0; i < schedule.members.length; i++) {
+      var m = schedule.members[i];
+      if (m.nurseId && m.beds) {
+        for (var j = 0; j < m.beds.length; j++) {
+          var bedNum = m.beds[j];
+          if (appData.assignments.beds[bedNum]) {
+            appData.assignments.beds[bedNum].primaryNurseId = m.nurseId;
+          }
+        }
+      }
+    }
+  }
+  // 组长写入专项护士栏
+  if (schedule.leader) {
+    if (type === 'upper') {
+      appData.assignments.special.nightUpperLeader = [schedule.leader];
+    } else {
+      appData.assignments.special.nightLateLeader = [schedule.leader];
+    }
+  }
+}
+// 4.1.6: 检查待生效的夜班排班
+function checkPendingNightSchedules() {
+  var now = new Date();
+  var today = dateStr(now);
+  // 上夜: 16:00后生效
+  var pNight = appData.pendingNightSchedule;
+  if (pNight) {
+    if ((pNight.date === today && now.getHours() >= 16) || pNight.date < today) {
+      applyNightShiftToBeds(pNight, 'upper');
+      appData.nightShiftUpper = pNight;
+      appData.pendingNightSchedule = null;
+      saveData();
+      if (document.getElementById('page-home').classList.contains('active')) renderHome();
+    }
+  }
+  // 下夜: 00:00后生效（即日期变为今天或之后）
+  var pNightLate = appData.pendingNightLateSchedule;
+  if (pNightLate) {
+    if (today > pNightLate.date) {
+      applyNightShiftToBeds(pNightLate, 'late');
+      appData.nightShiftLate = pNightLate;
+      appData.pendingNightLateSchedule = null;
+      saveData();
+      if (document.getElementById('page-home').classList.contains('active')) renderHome();
+    }
+  }
+}
+
+// ========== 4.1.7: 医疗组设置 ==========
+var newGroupDraft = { leader: null, members: [] };
+function initMedicalGroupsPage() {
+  newGroupDraft = { leader: null, members: [] };
+  document.getElementById('newGroupLeaderName').textContent = '未选择';
+  document.getElementById('newGroupMembersList').innerHTML = '<p style="color:var(--text-light);text-align:center;padding:10px">暂无组员，点击下方按钮添加</p>';
+  renderMedicalGroupsList();
+}
+function renderMedicalGroupsList() {
+  var container = document.getElementById('medicalGroupsList');
+  if (!appData.medicalGroups || appData.medicalGroups.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:10px">暂无医疗组，请上方新建</p>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < appData.medicalGroups.length; i++) {
+    var g = appData.medicalGroups[i];
+    var leaderName = g.leader ? findDoctorName(g.leader) : '未设置';
+    var memberNames = (g.members || []).map(function(m) { return findDoctorName(m); }).filter(function(n) { return n; });
+    html += '<div style="border:2px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html += '<span style="font-weight:600;font-size:1.05em">' + leaderName + '医疗组</span>';
+    html += '<div style="display:flex;gap:6px">';
+    html += '<button class="btn btn-sm btn-primary" onclick="editMedicalGroup(' + i + ')">编辑</button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="deleteMedicalGroup(' + i + ')">删除</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div style="font-size:0.9em;color:var(--text-light)">组员：' + (memberNames.length > 0 ? memberNames.join('、') : '无') + '</div>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+function openGroupLeaderSearch() {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'groupLeaderSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>选择医疗组长</h3>' +
+    '<input type="text" id="groupLeaderSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterGroupLeaderSearch()">' +
+    '<div class="staff-search-list" id="groupLeaderSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeGroupLeaderSearchModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeGroupLeaderSearchModal(); };
+  document.body.appendChild(modal);
+  renderGroupLeaderSearchList('');
+  document.getElementById('groupLeaderSearchInput').focus();
+}
+function renderGroupLeaderSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = appData.staff.doctors.filter(function(d) {
+    if (!k) return true;
+    if (d.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(d.name), k);
+  });
+  var list = document.getElementById('groupLeaderSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配</div>'; return; }
+  list.innerHTML = filtered.map(function(d) {
+    return '<div class="staff-search-item" onclick="selectGroupLeader(\'' + d.id + '\')"><span>' + d.name + '</span></div>';
+  }).join('');
+}
+function filterGroupLeaderSearch() {
+  var keyword = document.getElementById('groupLeaderSearchInput').value;
+  renderGroupLeaderSearchList(keyword);
+}
+function selectGroupLeader(id) {
+  newGroupDraft.leader = id;
+  document.getElementById('newGroupLeaderName').textContent = findDoctorName(id);
+  closeGroupLeaderSearchModal();
+}
+function clearGroupLeader() {
+  newGroupDraft.leader = null;
+  document.getElementById('newGroupLeaderName').textContent = '未选择';
+}
+function closeGroupLeaderSearchModal() {
+  var modal = document.getElementById('groupLeaderSearchModal');
+  if (modal) modal.remove();
+}
+function openGroupMemberSearch() {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'groupMemberSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>选择医疗组员</h3>' +
+    '<input type="text" id="groupMemberSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterGroupMemberSearch()">' +
+    '<div class="staff-search-list" id="groupMemberSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeGroupMemberSearchModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeGroupMemberSearchModal(); };
+  document.body.appendChild(modal);
+  renderGroupMemberSearchList('');
+  document.getElementById('groupMemberSearchInput').focus();
+}
+function renderGroupMemberSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = appData.staff.doctors.filter(function(d) {
+    if (d.id === newGroupDraft.leader) return false;
+    if (newGroupDraft.members.indexOf(d.id) >= 0) return false;
+    if (!k) return true;
+    if (d.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(d.name), k);
+  });
+  var list = document.getElementById('groupMemberSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配</div>'; return; }
+  list.innerHTML = filtered.map(function(d) {
+    return '<div class="staff-search-item" onclick="selectGroupMember(\'' + d.id + '\')"><span>' + d.name + '</span></div>';
+  }).join('');
+}
+function filterGroupMemberSearch() {
+  var keyword = document.getElementById('groupMemberSearchInput').value;
+  renderGroupMemberSearchList(keyword);
+}
+function selectGroupMember(id) {
+  newGroupDraft.members.push(id);
+  closeGroupMemberSearchModal();
+  renderNewGroupMembersList();
+}
+function renderNewGroupMembersList() {
+  var container = document.getElementById('newGroupMembersList');
+  if (newGroupDraft.members.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:10px">暂无组员，点击下方按钮添加</p>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < newGroupDraft.members.length; i++) {
+    var name = findDoctorName(newGroupDraft.members[i]);
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid var(--primary-lighter)">';
+    html += '<span>' + name + '</span>';
+    html += '<button class="btn btn-sm btn-clear" onclick="removeGroupMember(' + i + ')">移除</button>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+function removeGroupMember(idx) {
+  newGroupDraft.members.splice(idx, 1);
+  renderNewGroupMembersList();
+}
+function closeGroupMemberSearchModal() {
+  var modal = document.getElementById('groupMemberSearchModal');
+  if (modal) modal.remove();
+}
+function addMedicalGroup() {
+  if (!newGroupDraft.leader) { alert('请选择医疗组长'); return; }
+  var group = { leader: newGroupDraft.leader, members: newGroupDraft.members.slice() };
+  if (!appData.medicalGroups) appData.medicalGroups = [];
+  appData.medicalGroups.push(group);
+  saveData();
+  initMedicalGroupsPage();
+  alert('医疗组已保存');
+}
+function deleteMedicalGroup(idx) {
+  if (!confirm('确定删除此医疗组？')) return;
+  appData.medicalGroups.splice(idx, 1);
+  saveData();
+  renderMedicalGroupsList();
+}
+// 4.1.7: 编辑医疗组
+var editGroupDraft = null;
+var editGroupIdx = -1;
+function editMedicalGroup(idx) {
+  editGroupIdx = idx;
+  var g = appData.medicalGroups[idx];
+  editGroupDraft = { leader: g.leader, members: (g.members || []).slice() };
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'editGroupModal';
+  modal.onclick = function(e) { if (e.target === modal) closeEditGroupModal(); };
+  modal.innerHTML = '<div class="modal" style="max-height:80vh;overflow-y:auto">' +
+    '<h3>编辑医疗组</h3>' +
+    '<div style="margin-bottom:10px">' +
+    '<label style="display:block;margin-bottom:5px;font-weight:600">医疗组长</label>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+    '<span id="editGroupLeaderName" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:1em">' + findDoctorName(g.leader) + '</span>' +
+    '<button class="btn btn-sm btn-primary" onclick="openEditGroupLeaderSearch()">选择组长</button>' +
+    '<button class="btn btn-sm btn-clear" onclick="clearEditGroupLeader()">清除</button>' +
+    '</div></div>' +
+    '<div style="margin-bottom:10px">' +
+    '<label style="display:block;margin-bottom:5px;font-weight:600">医疗组员</label>' +
+    '<div id="editGroupMembersList" style="margin-bottom:8px"></div>' +
+    '<button class="btn btn-sm btn-primary" onclick="openEditGroupMemberSearch()">+ 添加组员</button>' +
+    '</div>' +
+    '<div style="display:flex;gap:10px;margin-top:15px">' +
+    '<button class="btn btn-primary" style="flex:1" onclick="saveEditMedicalGroup()">保存</button>' +
+    '<button class="btn" style="flex:1;background:#ccc" onclick="closeEditGroupModal()">取消</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+  renderEditGroupMembersList();
+}
+function renderEditGroupMembersList() {
+  var container = document.getElementById('editGroupMembersList');
+  if (!container) return;
+  if (!editGroupDraft || editGroupDraft.members.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:10px">暂无组员，点击下方按钮添加</p>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < editGroupDraft.members.length; i++) {
+    var name = findDoctorName(editGroupDraft.members[i]);
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid var(--primary-lighter)">';
+    html += '<span>' + name + '</span>';
+    html += '<button class="btn btn-sm btn-clear" onclick="removeEditGroupMember(' + i + ')">移除</button>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+function openEditGroupLeaderSearch() {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'editGroupLeaderSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>选择医疗组长</h3>' +
+    '<input type="text" id="editGroupLeaderSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterEditGroupLeaderSearch()">' +
+    '<div class="staff-search-list" id="editGroupLeaderSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeEditGroupLeaderSearchModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeEditGroupLeaderSearchModal(); };
+  document.body.appendChild(modal);
+  renderEditGroupLeaderSearchList('');
+  document.getElementById('editGroupLeaderSearchInput').focus();
+}
+function renderEditGroupLeaderSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = appData.staff.doctors.filter(function(d) {
+    if (!k) return true;
+    if (d.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(d.name), k);
+  });
+  var list = document.getElementById('editGroupLeaderSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配</div>'; return; }
+  list.innerHTML = filtered.map(function(d) {
+    return '<div class="staff-search-item" onclick="selectEditGroupLeader(\'' + d.id + '\')"><span>' + d.name + '</span></div>';
+  }).join('');
+}
+function filterEditGroupLeaderSearch() {
+  renderEditGroupLeaderSearchList(document.getElementById('editGroupLeaderSearchInput').value);
+}
+function selectEditGroupLeader(id) {
+  editGroupDraft.leader = id;
+  document.getElementById('editGroupLeaderName').textContent = findDoctorName(id);
+  closeEditGroupLeaderSearchModal();
+}
+function clearEditGroupLeader() {
+  editGroupDraft.leader = null;
+  document.getElementById('editGroupLeaderName').textContent = '未选择';
+}
+function closeEditGroupLeaderSearchModal() {
+  var modal = document.getElementById('editGroupLeaderSearchModal');
+  if (modal) modal.remove();
+}
+function openEditGroupMemberSearch() {
+  var modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'editGroupMemberSearchModal';
+  modal.innerHTML = '<div class="modal" style="max-height:75vh;overflow-y:auto">' +
+    '<h3>选择医疗组员</h3>' +
+    '<input type="text" id="editGroupMemberSearchInput" class="bind-input" placeholder="搜索姓名或拼音首字母..." oninput="filterEditGroupMemberSearch()">' +
+    '<div class="staff-search-list" id="editGroupMemberSearchList" style="margin-top:10px"></div>' +
+    '<div class="modal-actions"><button class="btn" style="background:#ccc" onclick="closeEditGroupMemberSearchModal()">取消</button></div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) closeEditGroupMemberSearchModal(); };
+  document.body.appendChild(modal);
+  renderEditGroupMemberSearchList('');
+  document.getElementById('editGroupMemberSearchInput').focus();
+}
+function renderEditGroupMemberSearchList(keyword) {
+  var k = (keyword || '').trim().toLowerCase();
+  var filtered = appData.staff.doctors.filter(function(d) {
+    if (d.id === editGroupDraft.leader) return false;
+    if (editGroupDraft.members.indexOf(d.id) >= 0) return false;
+    if (!k) return true;
+    if (d.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(d.name), k);
+  });
+  var list = document.getElementById('editGroupMemberSearchList');
+  if (!list) return;
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state">未找到匹配</div>'; return; }
+  list.innerHTML = filtered.map(function(d) {
+    return '<div class="staff-search-item" onclick="selectEditGroupMember(\'' + d.id + '\')"><span>' + d.name + '</span></div>';
+  }).join('');
+}
+function filterEditGroupMemberSearch() {
+  renderEditGroupMemberSearchList(document.getElementById('editGroupMemberSearchInput').value);
+}
+function selectEditGroupMember(id) {
+  editGroupDraft.members.push(id);
+  closeEditGroupMemberSearchModal();
+  renderEditGroupMembersList();
+}
+function removeEditGroupMember(idx) {
+  editGroupDraft.members.splice(idx, 1);
+  renderEditGroupMembersList();
+}
+function closeEditGroupMemberSearchModal() {
+  var modal = document.getElementById('editGroupMemberSearchModal');
+  if (modal) modal.remove();
+}
+function saveEditMedicalGroup() {
+  if (!editGroupDraft.leader) { alert('请选择医疗组长'); return; }
+  appData.medicalGroups[editGroupIdx] = { leader: editGroupDraft.leader, members: editGroupDraft.members.slice() };
+  saveData();
+  closeEditGroupModal();
+  renderMedicalGroupsList();
+  alert('医疗组已更新');
+}
+function closeEditGroupModal() {
+  var modal = document.getElementById('editGroupModal');
+  if (modal) modal.remove();
+  editGroupDraft = null;
+  editGroupIdx = -1;
+}
+// 4.1.7: 查询医疗组 - 独立页面，搜索结果人名可拨打电话
+function initMedGroupSearchPage() {
+  document.getElementById('medGroupSearchInput').value = '';
+  var resultEl = document.getElementById('medGroupSearchResult');
+  var detailEl = document.getElementById('medGroupDetail');
+  detailEl.innerHTML = '';
+  if (!appData.medicalGroups || appData.medicalGroups.length === 0) {
+    resultEl.innerHTML = '<div class="empty-state">暂无医疗组，请在管理-医疗组设置中创建</div>';
+    return;
+  }
+  // 显示所有医生列表
+  var allNames = [];
+  for (var i = 0; i < appData.medicalGroups.length; i++) {
+    var g = appData.medicalGroups[i];
+    var leaderName = findDoctorName(g.leader);
+    if (leaderName) allNames.push(leaderName);
+    for (var j = 0; j < g.members.length; j++) {
+      var mName = findDoctorName(g.members[j]);
+      if (mName) allNames.push(mName);
+    }
+  }
+  allNames = allNames.filter(function(n) { return n; });
+  if (allNames.length === 0) {
+    resultEl.innerHTML = '<div class="empty-state">暂无医疗组</div>';
+    return;
+  }
+  resultEl.innerHTML = allNames.map(function(n) {
+    return '<div class="staff-search-item" onclick="showMedGroupDetail(\'' + n + '\')"><span>' + n + '</span></div>';
+  }).join('');
+}
+function searchMedicalGroup() {
+  var keyword = document.getElementById('medGroupSearchInput').value;
+  var resultEl = document.getElementById('medGroupSearchResult');
+  document.getElementById('medGroupDetail').innerHTML = '';
+  if (!keyword || !keyword.trim()) {
+    initMedGroupSearchPage();
+    return;
+  }
+  var k = keyword.trim().toLowerCase();
+  var matched = appData.staff.doctors.filter(function(d) {
+    if (d.name.toLowerCase().includes(k)) return true;
+    return fuzzyInitialsMatch(getPinyinInitials(d.name), k);
+  });
+  if (matched.length === 0) {
+    resultEl.innerHTML = '<div class="empty-state">未找到匹配</div>';
+    return;
+  }
+  resultEl.innerHTML = matched.map(function(d) {
+    return '<div class="staff-search-item" onclick="showMedGroupDetail(\'' + d.name + '\')"><span>' + d.name + '</span></div>';
+  }).join('');
+}
+function showMedGroupDetail(name) {
+  document.getElementById('medGroupSearchInput').value = name;
+  var detailEl = document.getElementById('medGroupDetail');
+  if (!appData.medicalGroups || appData.medicalGroups.length === 0) {
+    detailEl.innerHTML = '<div class="empty-state">' + name + ' 不属于任何医疗组</div>';
+    return;
+  }
+  var found = false;
+  var html = '';
+  for (var i = 0; i < appData.medicalGroups.length; i++) {
+    var g = appData.medicalGroups[i];
+    var leaderName = findDoctorName(g.leader);
+    var memberNames = (g.members || []).map(function(m) { return findDoctorName(m); }).filter(function(n) { return n; });
+    var isInGroup = (leaderName === name) || (memberNames.indexOf(name) >= 0);
+    if (isInGroup) {
+      found = true;
+      var role = (leaderName === name) ? '组长' : '组员';
+      html += '<div style="border:2px solid var(--primary);border-radius:10px;padding:12px;margin-bottom:10px">';
+      html += '<div style="font-weight:600;font-size:1.15em;color:var(--primary);margin-bottom:8px">' + leaderName + '医疗组</div>';
+      html += '<div style="margin-bottom:6px;font-size:0.95em">您的角色：' + role + '</div>';
+      // 组长（可拨打电话）
+      var leaderDoctor = appData.staff.doctors.find(function(d) { return d.id === g.leader; });
+      var leaderPhone = leaderDoctor && leaderDoctor.phone ? leaderDoctor.phone : '';
+      html += '<div style="display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--primary-lighter)">';
+      html += '<span style="font-weight:600;min-width:60px">组长</span>';
+      if (leaderPhone) {
+        html += '<a href="tel:' + leaderPhone + '" style="color:var(--primary);text-decoration:underline;flex:1">' + leaderName + '</a>';
+      } else {
+        html += '<span style="flex:1">' + leaderName + '</span>';
+      }
+      html += '</div>';
+      // 组员（可拨打电话）
+      for (var j = 0; j < g.members.length; j++) {
+        var mId = g.members[j];
+        var mName = findDoctorName(mId);
+        if (!mName) continue;
+        var mDoctor = appData.staff.doctors.find(function(d) { return d.id === mId; });
+        var mPhone = mDoctor && mDoctor.phone ? mDoctor.phone : '';
+        html += '<div style="display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--primary-lighter)">';
+        html += '<span style="font-weight:600;min-width:60px">组员</span>';
+        if (mPhone) {
+          html += '<a href="tel:' + mPhone + '" style="color:var(--primary);text-decoration:underline;flex:1">' + mName + '</a>';
+        } else {
+          html += '<span style="flex:1">' + mName + '</span>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+  }
+  if (!found) {
+    detailEl.innerHTML = '<div class="empty-state">' + name + ' 不属于任何医疗组</div>';
+  } else {
+    detailEl.innerHTML = html;
+  }
+}
+
 // ========== 医生值班周排班 ==========
 function showDoctorWeeklyPage(week) {
   currentWeeklyWeek = week;
@@ -2093,11 +3150,12 @@ function switchWeeklyTab(week) {
 function renderDoctorWeeklyPage() {
   const container = document.getElementById('weeklyScheduleContainer');
   const baseMonday = currentWeeklyWeek === 'currentWeek' ? getMondayOfDate(new Date()) : addDays(getMondayOfDate(new Date()), 7);
+  // 4.1.6: 班次顺序改为二线夜班、二线白班、一线夜班、一线白班
   const shifts = [
-    { line: 'firstLine', shift: 'day', label: '一线白班', time: '08:00-17:30' },
-    { line: 'firstLine', shift: 'night', label: '一线夜班', time: '17:30-08:00' },
+    { line: 'secondLine', shift: 'night', label: '二线夜班', time: '17:30-08:00' },
     { line: 'secondLine', shift: 'day', label: '二线白班', time: '08:00-17:30' },
-    { line: 'secondLine', shift: 'night', label: '二线夜班', time: '17:30-08:00' }
+    { line: 'firstLine', shift: 'night', label: '一线夜班', time: '17:30-08:00' },
+    { line: 'firstLine', shift: 'day', label: '一线白班', time: '08:00-17:30' }
   ];
   let html = '<table class="weekly-table"><thead><tr><th style="width:110px">班次</th>';
   for (let d = 0; d < 7; d++) {
@@ -2222,38 +3280,93 @@ function saveDoctorWeeklySchedule() {
   showPage('admin');
 }
 
-// ========== 定时清除与待执行排班 ==========
-function checkAutoClearNurseSchedule() {
-  const now = new Date();
-  const today = dateStr(now);
-  if (appData.lastAutoClearDate === today) return;
-  if (now.getHours() < 16) return;
-  if (appData.lastNurseBatchScheduleDate === today) {
-    appData.lastAutoClearDate = today;
-    saveData();
-    return;
-  }
-  for (let i = 31; i <= 59; i++) appData.assignments.beds[i].primaryNurseId = null;
-  Object.keys(appData.assignments.special).forEach(k => appData.assignments.special[k] = []);
-  appData.lastAutoClearDate = today;
-  saveData();
-  if (document.getElementById('page-home').classList.contains('active')) renderHome();
-}
+// ========== 定时任务与待执行排班 ==========
+// 4.1.6: 去掉16:00自动清除当日护士排班的规则
 function checkPendingNurseSchedule() {
   const p = appData.pendingNurseSchedule;
   if (!p) return;
   const now = new Date();
   const today = dateStr(now);
-  if ((p.date === today && now.getHours() >= 16) || p.date < today) {
+  // 4.1.6: 次日排班在次日08:00后自动更新到主界面
+  if ((p.date === today && now.getHours() >= 8) || p.date < today) {
     applyNurseBatchSchedule(p);
     appData.pendingNurseSchedule = null;
     saveData();
     if (document.getElementById('page-home').classList.contains('active')) renderHome();
   }
 }
+// 4.1.7: 每天15:59自动清除当日护士白班排班（床位+专项，不含夜班专项）
+function checkAutoClearDayShift() {
+  var now = new Date();
+  var today = dateStr(now);
+  if (appData.lastAutoClearDayDate === today) return;
+  // 15:59触发
+  if (now.getHours() < 15) return;
+  if (now.getHours() === 15 && now.getMinutes() < 59) return;
+  // 清除床位护士排班
+  for (var i = 31; i <= 59; i++) {
+    if (appData.assignments.beds[i]) appData.assignments.beds[i].primaryNurseId = null;
+  }
+  // 清除专项护士（不含夜班组长）
+  var specialKeys = Object.keys(SPECIAL_LABELS);
+  for (var ki = 0; ki < specialKeys.length; ki++) {
+    var k = specialKeys[ki];
+    if (k !== 'nightUpperLeader' && k !== 'nightLateLeader') {
+      appData.assignments.special[k] = [];
+    }
+  }
+  appData.lastAutoClearDayDate = today;
+  saveData();
+  if (document.getElementById('page-home').classList.contains('active')) renderHome();
+}
+// 4.1.7: 每天23:59自动清除护士上夜排班（床位+夜班专项）
+function checkAutoClearNightShift() {
+  var now = new Date();
+  var today = dateStr(now);
+  if (appData.lastAutoClearNightDate === today) return;
+  // 23:59触发
+  if (now.getHours() < 23) return;
+  if (now.getHours() === 23 && now.getMinutes() < 59) return;
+  // 清除床位护士排班（夜班覆盖的）
+  for (var i = 31; i <= 59; i++) {
+    if (appData.assignments.beds[i]) appData.assignments.beds[i].primaryNurseId = null;
+  }
+  // 清除夜班专项组长
+  appData.assignments.special.nightUpperLeader = [];
+  appData.assignments.special.nightLateLeader = [];
+  // 清除夜班排班数据
+  appData.nightShiftUpper = null;
+  appData.nightShiftLate = null;
+  appData.lastAutoClearNightDate = today;
+  saveData();
+  if (document.getElementById('page-home').classList.contains('active')) renderHome();
+}
+// 4.1.7: 暂管医生保存后24小时自动清除
+function checkAutoClearTempDoctor() {
+  if (!appData.assignments || !appData.assignments.beds) return;
+  var now = Date.now();
+  var changed = false;
+  for (var i = 31; i <= 59; i++) {
+    var bed = appData.assignments.beds[i];
+    if (!bed || !bed.tempDoctorId) continue;
+    if (!bed.tempDoctorAt) { bed.tempDoctorAt = now; continue; } // 旧数据补记时间，从现在起算24小时
+    if (now - bed.tempDoctorAt >= 24 * 60 * 60 * 1000) {
+      bed.tempDoctorId = null;
+      bed.tempDoctorAt = null;
+      changed = true;
+    }
+  }
+  if (changed) {
+    saveData();
+    if (document.getElementById('page-home').classList.contains('active')) renderHome();
+  }
+}
 function scheduledTasks() {
-  checkAutoClearNurseSchedule();
   checkPendingNurseSchedule();
+  checkPendingNightSchedules();
+  checkAutoClearDayShift();
+  checkAutoClearNightShift();
+  checkAutoClearTempDoctor();
   // Daily at 8:00 AM, force update duty from weekly schedule
   var now = new Date();
   var today = dateStr(now);
