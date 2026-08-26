@@ -1887,7 +1887,7 @@ function mergeCloudData(localData, cloudData, snapshot) {
   }
 
   // 管理员级字段: 本地改了才覆盖
-  var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','pendingNightSchedule','pendingNightLateSchedule','nightShiftUpper','nightShiftLate','lastNurseBatchScheduleDate','lastAutoClearDate','lastDailyDutyUpdate','dutyManualOverrideUntil','adminPwd'];
+  var adminFields = ['weeklyDoctorSchedule','pendingNurseSchedule','pendingNightSchedule','pendingNightLateSchedule','nightShiftUpper','nightShiftLate','lastNurseBatchScheduleDate','lastAutoClearDate','lastAutoClearDayDate','lastAutoClearNightDate','lastDailyDutyUpdate','dutyManualOverrideUntil','medicalGroups','adminPwd'];
   for (var af of adminFields) {
     if (JSON.stringify(localData[af]) !== JSON.stringify(snapshot[af])) {
       merged[af] = localData[af];
@@ -2630,11 +2630,11 @@ function saveNightBatchSchedule(type) {
   // 保存到localStorage
   localStorage.setItem('icu3_night_' + (type === 'upper' ? 'upper' : 'late'), JSON.stringify({ leader: scheduleCopy.leader, members: scheduleCopy.members }));
   if (type === 'upper') {
-    // 上夜: 16:00前保存→16:00后自动更新; 16:00后保存→立即生效
-    if (dateVal === today && now.getHours() < 16) {
+    // 上夜: 当日16:00前保存→16:00后自动更新; 当日16:00后保存→立即生效; 未来日期→排班当日16:00自动更新
+    if (dateVal > today || (dateVal === today && now.getHours() < 16)) {
       appData.pendingNightSchedule = scheduleCopy;
       saveData();
-      alert('上夜排班已保存，将在16:00后自动更新到主界面');
+      alert('上夜排班已保存，将在排班当日16:00后自动更新到主界面');
       showPage('admin');
     } else {
       applyNightShiftToBeds(scheduleCopy, 'upper');
@@ -2688,32 +2688,45 @@ function applyNightShiftToBeds(schedule, type) {
     }
   }
 }
-// 4.1.6: 检查待生效的夜班排班
-function checkPendingNightSchedules() {
+// 4.1.7: 检查待生效的上夜排班（16:00后生效；排班日已过则丢弃）
+function checkPendingUpperNightSchedule() {
+  var pNight = appData.pendingNightSchedule;
+  if (!pNight) return;
   var now = new Date();
   var today = dateStr(now);
-  // 上夜: 16:00后生效
-  var pNight = appData.pendingNightSchedule;
-  if (pNight) {
-    if ((pNight.date === today && now.getHours() >= 16) || pNight.date < today) {
-      applyNightShiftToBeds(pNight, 'upper');
-      appData.nightShiftUpper = pNight;
-      appData.pendingNightSchedule = null;
-      saveData();
-      if (document.getElementById('page-home').classList.contains('active')) renderHome();
-    }
+  if (pNight.date < today) {
+    // 排班日已过（16:00-23:59窗口已结束），丢弃不再生效
+    appData.pendingNightSchedule = null;
+    saveData();
+    return;
   }
-  // 下夜: 00:00后生效（即日期变为今天或之后）
+  if (pNight.date === today && now.getHours() >= 16) {
+    applyNightShiftToBeds(pNight, 'upper');
+    appData.nightShiftUpper = pNight;
+    appData.pendingNightSchedule = null;
+    saveData();
+    if (document.getElementById('page-home').classList.contains('active')) renderHome();
+  }
+}
+// 4.1.7: 检查待生效的下夜排班（00:00后生效；生效窗口已过则丢弃）
+function checkPendingLateNightSchedule() {
   var pNightLate = appData.pendingNightLateSchedule;
-  if (pNightLate) {
-    if (today > pNightLate.date) {
-      applyNightShiftToBeds(pNightLate, 'late');
-      appData.nightShiftLate = pNightLate;
-      appData.pendingNightLateSchedule = null;
-      saveData();
-      if (document.getElementById('page-home').classList.contains('active')) renderHome();
-    }
+  if (!pNightLate) return;
+  var today = dateStr(new Date());
+  if (today <= pNightLate.date) return; // 还没到00:00
+  // 生效窗口: 排班日次日00:00起，超过一天说明早已过期，丢弃
+  var nextDay = new Date(pNightLate.date + 'T00:00:00');
+  nextDay.setDate(nextDay.getDate() + 2); // 过期边界 = 排班日+2天
+  if (dateStr(nextDay) <= today) {
+    appData.pendingNightLateSchedule = null;
+    saveData();
+    return;
   }
+  applyNightShiftToBeds(pNightLate, 'late');
+  appData.nightShiftLate = pNightLate;
+  appData.pendingNightLateSchedule = null;
+  saveData();
+  if (document.getElementById('page-home').classList.contains('active')) renderHome();
 }
 
 // ========== 4.1.7: 医疗组设置 ==========
@@ -3287,8 +3300,14 @@ function checkPendingNurseSchedule() {
   if (!p) return;
   const now = new Date();
   const today = dateStr(now);
+  if (p.date < today) {
+    // 排班日已过（当日白班早已结束），丢弃不再生效
+    appData.pendingNurseSchedule = null;
+    saveData();
+    return;
+  }
   // 4.1.6: 次日排班在次日08:00后自动更新到主界面
-  if ((p.date === today && now.getHours() >= 8) || p.date < today) {
+  if (p.date === today && now.getHours() >= 8) {
     applyNurseBatchSchedule(p);
     appData.pendingNurseSchedule = null;
     saveData();
@@ -3320,13 +3339,19 @@ function checkAutoClearDayShift() {
   if (document.getElementById('page-home').classList.contains('active')) renderHome();
 }
 // 4.1.7: 每天23:59自动清除护士上夜排班（床位+夜班专项）
+// 修正: 按"最近一个已过去的23:59边界"计算应清除的日期，跨零点补跑时标记为前一日的清除，
+// 避免晚打开的设备把标记设成当天、导致当天23:59的真正清除被跳过
 function checkAutoClearNightShift() {
   var now = new Date();
   var today = dateStr(now);
-  if (appData.lastAutoClearNightDate === today) return;
-  // 23:59触发
-  if (now.getHours() < 23) return;
-  if (now.getHours() === 23 && now.getMinutes() < 59) return;
+  var intended;
+  if (now.getHours() >= 23 && now.getMinutes() >= 59) {
+    intended = today;
+  } else {
+    intended = dateStr(new Date(now.getTime() - 24 * 60 * 60 * 1000)); // 昨天的23:59已过
+  }
+  if (appData.lastAutoClearNightDate === intended) return;
+  if (appData.lastAutoClearNightDate && appData.lastAutoClearNightDate > intended) return;
   // 清除床位护士排班（夜班覆盖的）
   for (var i = 31; i <= 59; i++) {
     if (appData.assignments.beds[i]) appData.assignments.beds[i].primaryNurseId = null;
@@ -3337,7 +3362,7 @@ function checkAutoClearNightShift() {
   // 清除夜班排班数据
   appData.nightShiftUpper = null;
   appData.nightShiftLate = null;
-  appData.lastAutoClearNightDate = today;
+  appData.lastAutoClearNightDate = intended;
   saveData();
   if (document.getElementById('page-home').classList.contains('active')) renderHome();
 }
@@ -3361,11 +3386,39 @@ function checkAutoClearTempDoctor() {
     if (document.getElementById('page-home').classList.contains('active')) renderHome();
   }
 }
+// 4.1.7修复: 周期性从云端拉取最新数据。此前只在页面加载时loadData一次，
+// 其他设备保存的待生效排班/清除标记，一直开着的页面永远看不到，导致16:00上夜排班不生效。
+var cloudRefreshing = false;
+async function refreshFromCloud() {
+  if (cloudRefreshing) return;
+  if (saveProcessing || saveQueue.length > 0) return; // 本地有未完成的保存，暂不刷新
+  cloudRefreshing = true;
+  try {
+    const res = await fetch(API_BASE + DATA_ID + '?t=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.staff && data.staff.doctors && data.staff.doctors.length > 0) {
+        if ((data.updatedAt || 0) > (appData.updatedAt || 0)) {
+          appData = data;
+          lastUpdate = data.updatedAt || 0;
+          lastCloudSnapshot = deepClone(data);
+          try { localStorage.setItem('icu3_data_backup', JSON.stringify(data)); } catch(e) {}
+          migrateData();
+          if (document.getElementById('page-home').classList.contains('active')) renderHome();
+        }
+      }
+    }
+  } catch (e) { /* 网络异常时忽略，下次轮询再试 */ }
+  cloudRefreshing = false;
+}
 function scheduledTasks() {
-  checkPendingNurseSchedule();
-  checkPendingNightSchedules();
-  checkAutoClearDayShift();
+  // 按时间先后顺序执行，保证补跑（页面打开时错过触发时刻）时状态正确:
+  // 23:59夜班清除 → 00:00下夜生效 → 08:00日排班生效 → 15:59白班清除 → 16:00上夜生效
   checkAutoClearNightShift();
+  checkPendingLateNightSchedule();
+  checkPendingNurseSchedule();
+  checkAutoClearDayShift();
+  checkPendingUpperNightSchedule();
   checkAutoClearTempDoctor();
   // Daily at 8:00 AM, force update duty from weekly schedule
   var now = new Date();
@@ -3403,7 +3456,8 @@ async function init() {
     setInterval(() => {
       renderTime();
       if (document.getElementById('page-home').classList.contains('active')) {
-        scheduledTasks();
+        // 先拉取云端最新数据（其他设备的保存），再执行定时任务（待生效排班/自动清除）
+        refreshFromCloud().then(() => { scheduledTasks(); });
       }
     }, 60000);
     setInterval(() => {
