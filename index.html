@@ -3411,7 +3411,60 @@ async function refreshFromCloud() {
   } catch (e) { /* 网络异常时忽略，下次轮询再试 */ }
   cloudRefreshing = false;
 }
+// 4.1.7修复: 周排班跨周滚动 — 新的一周开始后把"下周"排班转入"本周"，否则周一起推送的仍是上周旧数据
+function checkWeeklyScheduleRollover() {
+  var wsd = appData.weeklyDoctorSchedule;
+  if (!wsd) return false;
+  var now = new Date();
+  var thisMon = getMondayOfDate(now);
+  var thisMonStr = dateStr(thisMon);
+  var nextMonStr = dateStr(addDays(thisMon, 7));
+  var prevMonStr = dateStr(addDays(thisMon, -7));
+  // 首次迁移(无周标记)
+  if (!wsd._currentMonday) {
+    if (weekSlotHasData(wsd.nextWeek)) {
+      // 下周槽位有数据且从未滚动过 → 视为漏跑了本次跨周滚动, 补跑(下周转正为本周)
+      wsd._currentMonday = prevMonStr;
+      wsd._nextMonday = thisMonStr;
+    } else {
+      // 下周为空: 现有currentWeek数据视为本周, 仅初始化标记
+      wsd._currentMonday = thisMonStr;
+      wsd._nextMonday = nextMonStr;
+      return false;
+    }
+  }
+  if (wsd._currentMonday === thisMonStr) return false;
+  // 周一08:00前仍属于上周周日夜班(17:30-08:00)，暂不滚动
+  if (now.getDay() === 1 && now.getHours() < 8) return false;
+  if (wsd._nextMonday === thisMonStr) {
+    // 下周排班转正为本周
+    wsd.currentWeek = wsd.nextWeek || {};
+    wsd.nextWeek = {};
+  } else {
+    // 中间隔了多周（设备长期未开），数据已过期，清空
+    wsd.currentWeek = {};
+    wsd.nextWeek = {};
+  }
+  wsd._currentMonday = thisMonStr;
+  wsd._nextMonday = nextMonStr;
+  return true;
+}
+function weekSlotHasData(slot) {
+  if (!slot) return false;
+  for (var d = 0; d < 7; d++) {
+    var day = slot[d];
+    if (!day) continue;
+    if (day.firstLine && ((day.firstLine.day && day.firstLine.day.length) || (day.firstLine.night && day.firstLine.night.length))) return true;
+    if (day.secondLine && ((day.secondLine.day && day.secondLine.day.length) || (day.secondLine.night && day.secondLine.night.length))) return true;
+  }
+  return false;
+}
 function scheduledTasks() {
+  // 周排班跨周滚动（必须先于每日8点值班推送执行）
+  if (checkWeeklyScheduleRollover()) {
+    saveData();
+    if (document.getElementById('page-doctor-weekly').classList.contains('active')) renderDoctorWeeklyPage();
+  }
   // 按时间先后顺序执行，保证补跑（页面打开时错过触发时刻）时状态正确:
   // 23:59夜班清除 → 00:00下夜生效 → 08:00日排班生效 → 15:59白班清除 → 16:00上夜生效
   checkAutoClearNightShift();
