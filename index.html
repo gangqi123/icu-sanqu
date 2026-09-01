@@ -1770,8 +1770,17 @@ function collectLocalChanges(localData, snapshot) {
     if (localData.assignments && snapshot.assignments) {
       if (localData.assignments.beds && snapshot.assignments.beds) {
         for (var bn in localData.assignments.beds) {
-          if (JSON.stringify(localData.assignments.beds[bn]) !== JSON.stringify(snapshot.assignments.beds[bn] || null)) {
-            changes['beds.' + bn] = localData.assignments.beds[bn];
+          var lb = localData.assignments.beds[bn];
+          var sb = snapshot.assignments.beds[bn];
+          if (JSON.stringify(lb) === JSON.stringify(sb || null)) continue;
+          // 4.1.7修复: 逐字段检测（护士字段与医生字段独立）
+          var bedFieldSet = {};
+          for (var fk in lb) bedFieldSet[fk] = true;
+          if (sb) { for (var fk2 in sb) bedFieldSet[fk2] = true; }
+          for (var fk3 in bedFieldSet) {
+            if (JSON.stringify(lb[fk3]) !== JSON.stringify(sb ? sb[fk3] : undefined)) {
+              changes['beds.' + bn + '.' + fk3] = lb[fk3];
+            }
           }
         }
       }
@@ -1811,8 +1820,10 @@ function isChangesPresent(cloudData, changes) {
       } else if (key === 'staff.nurses') {
         cur = (cloudData.staff && cloudData.staff.nurses) ? cloudData.staff.nurses : null;
       } else if (key.indexOf('beds.') === 0) {
-        var bn2 = key.slice(5);
-        cur = (cloudData.assignments && cloudData.assignments.beds && cloudData.assignments.beds[bn2]) ? cloudData.assignments.beds[bn2] : null;
+        // 4.1.7修复: 字段级键 beds.<床号>.<字段名>
+        var bPath = key.slice(5).split('.');
+        var bn2 = bPath[0], bf2 = bPath[1];
+        cur = (cloudData.assignments && cloudData.assignments.beds && cloudData.assignments.beds[bn2] && cloudData.assignments.beds[bn2][bf2] !== undefined) ? cloudData.assignments.beds[bn2][bf2] : null;
       } else if (key.indexOf('duty.') === 0) {
         var slot2 = key.slice(5);
         cur = (cloudData.assignments && cloudData.assignments.duty && cloudData.assignments.duty[slot2] !== undefined) ? cloudData.assignments.duty[slot2] : null;
@@ -1856,13 +1867,31 @@ function mergeCloudData(localData, cloudData, snapshot) {
   if (localData.assignments && snapshot.assignments) {
     if (!merged.assignments) merged.assignments = deepClone(cloudData.assignments || {});
     if (!merged.assignments.beds) merged.assignments.beds = {};
+    // assignments.beds: 按床位逐字段合并（4.1.7修复: 护士字段与医生字段互不影响，
+    // 护士排班只覆盖 primaryNurseId，不会把本地过期的医生排班推上云端，反之亦然）
     for (var bn in localData.assignments.beds) {
       var lb = localData.assignments.beds[bn];
       var sb = snapshot.assignments.beds[bn];
-      if (JSON.stringify(lb) !== JSON.stringify(sb)) {
-        merged.assignments.beds[bn] = lb; // 本地改了这张床
+      if (JSON.stringify(lb) === JSON.stringify(sb)) continue; // 本地这张床未修改，保留云端
+      if (!merged.assignments.beds[bn]) {
+        merged.assignments.beds[bn] = deepClone(lb); // 云端缺这张床，直接补上
         changed = true;
+        continue;
       }
+      var cb = merged.assignments.beds[bn];
+      var newBed = deepClone(cb);
+      var bedChanged = false;
+      var bedFieldSet = {};
+      for (var fk in lb) bedFieldSet[fk] = true;
+      if (sb) { for (var fk2 in sb) bedFieldSet[fk2] = true; }
+      for (var fk3 in bedFieldSet) {
+        // 只有本地相对基准快照改过的字段才覆盖云端
+        if (JSON.stringify(lb[fk3]) !== JSON.stringify(sb ? sb[fk3] : undefined)) {
+          newBed[fk3] = lb[fk3];
+          bedChanged = true;
+        }
+      }
+      if (bedChanged) { merged.assignments.beds[bn] = newBed; changed = true; }
     }
     // assignments.duty: 按班次逐个合并
     if (!merged.assignments.duty) merged.assignments.duty = {};
